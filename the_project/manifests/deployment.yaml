@@ -1,21 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: todo-app
+  name: log-output
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: todo-app
+      app: log-output
   template:
     metadata:
       labels:
-        app: todo-app
+        app: log-output
     spec:
       containers:
-        - name: todo-app
-          image: todo-app:1.2
+        - name: log-output
+          image: log-output:1.1
           imagePullPolicy: IfNotPresent
-          env:
-            - name: PORT
-              value: "3000"
