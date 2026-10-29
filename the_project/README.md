@@ -20,3 +20,12 @@ kubectl port-forward deployment/todo-app 8080:3000
 ```
 
 Open http://localhost:8080/
+
+## NodePort
+
+```bash
+kubectl apply -f manifests/service.yaml
+k3d cluster edit dwk --port-add "30080:30080@server:0"
+```
+
+Open http://localhost:30080/
