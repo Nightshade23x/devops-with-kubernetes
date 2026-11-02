@@ -12,3 +12,4 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 - [1.4 — The project, step 2](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.4/the_project)
 - [1.5 — The project, step 3](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.5/the_project)
 - [1.6 — The project, step 4](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.6/the_project)
+- [1.7 — External access with Ingress](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.7/log_output)

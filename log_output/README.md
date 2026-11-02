@@ -1,23 +1,21 @@
+
 # Log output
 
-Generates a random UUID at startup and prints it with a timestamp every 5 seconds.
+Generates a random UUID at startup and prints it with a timestampp every 5 seconds. The current status is available through an HTTP endpoint.
 
 ## Run
 
-With Docker running, create the cluster if it doesn't exist:
-
-`k3d cluster create dwk`
-
-From the `log_output` directory, run:
-
 ```bash
-docker build -t log-output:1.1 .
-k3d image import log-output:1.1 -c dwk
-kubectl apply -f manifests/deployment.yaml
-```
-
-Check the logs:
-
-```bash
+docker build -t log-output:1.7 .
+k3d image import log-output:1.7 -c dwk
+kubectl apply -f manifests/
 kubectl logs deployment/log-output
 ```
+
+## Access
+
+```bash
+k3d cluster edit dwk --port-add "8081:80@loadbalancer"
+```
+
+Open http://localhost:8081/
