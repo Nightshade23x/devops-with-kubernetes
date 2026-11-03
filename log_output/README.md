@@ -1,21 +1,25 @@
 
 # Log output
 
-Generates a random UUID at startup and prints it with a timestampp every 5 seconds. The current status is available through an HTTP endpoint.
+Writes a timestamp and UUID to a shared file every 5 seconds.
+
+Two containers run in the same Pod:
+- Log writer writes to the file.
+- Log reader serves the file through HTTP.
 
 ## Run
 
 ```bash
-docker build -t log-output:1.7 .
-k3d image import log-output:1.7 -c dwk
+docker build -t log-output:1.10 .
+k3d image import log-output:1.10 -c dwk
 kubectl apply -f manifests/
-kubectl logs deployment/log-output
 ```
 
-## Access
+## Check
 
 ```bash
-k3d cluster edit dwk --port-add "8081:80@loadbalancer"
+kubectl get pods
+kubectl logs deployment/log-output -c log-writer
 ```
 
-Open http://localhost:8081/
+Access at http://localhost:8081/
