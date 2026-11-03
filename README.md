@@ -16,3 +16,4 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 - [1.8 — The project, step 5](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.8/the_project)
 - [1.9 — More services](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.9/ping_pong)
 - [1.10 — Even more services](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.10/log_output)
+- [1.11 — Persisting data](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.11)

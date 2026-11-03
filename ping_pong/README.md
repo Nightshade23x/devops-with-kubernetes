@@ -1,14 +1,14 @@
+
 # Ping-pong
 
-Returns an increasing counter at /pingpong.
+Returns an increasing counter at /pingpong and saves it to a persistent volume.
 
 ## Run
 
-Build and deploy:
-
-docker build -t ping-pong:1.9 .
-k3d image import ping-pong:1.9 -c dwk
+```bash
+docker build -t ping-pong:1.11 .
+k3d image import ping-pong:1.11 -c dwk
 kubectl apply -f manifests/
-kubectl apply -f ../log_output/manifests/
+```
 
 Access at http://localhost:8081/pingpong

@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: log-writer
-          image: log-output:1.10
+          image: log-output:1.11
           imagePullPolicy: IfNotPresent
           command: ["python", "-u", "app.py"]
           volumeMounts:
@@ -23,7 +23,7 @@ spec:
               mountPath: /shared
 
         - name: log-reader
-          image: log-output:1.10
+          image: log-output:1.11
           imagePullPolicy: IfNotPresent
           command: ["python", "-u", "server.py"]
           ports:
@@ -31,7 +31,13 @@ spec:
           volumeMounts:
             - name: shared-data
               mountPath: /shared
+            - name: persistent-data
+              mountPath: /data
+              readOnly: true
 
       volumes:
         - name: shared-data
           emptyDir: {}
+        - name: persistent-data
+          persistentVolumeClaim:
+            claimName: shared-data-pvc
