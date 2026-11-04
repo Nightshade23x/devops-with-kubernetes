@@ -31,18 +31,77 @@ def get_image():
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
+        
         if self.path in ("/", "/todo", "/todo/"):
             content = b"""
+            <!DOCTYPE html>
             <html>
-            <head><title>Todo App</title></head>
-            <body style="text-align:center; font-family:Arial;">
+            <head>
+                <title>Todo App</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        max-width: 700px;
+                        margin: 40px auto;
+                        text-align: center;
+                    }
+                    img {
+                        width: 80%;
+                        max-width: 500px;
+                        border-radius: 8px;
+                    }
+                    .form {
+                        display: flex;
+                        gap: 10px;
+                        margin-top: 30px;
+                    }
+                    input {
+                        flex: 1;
+                        padding: 12px;
+                    }
+                    button {
+                        padding: 12px 20px;
+                        cursor: pointer;
+                    }
+                    li {
+                        text-align: left;
+                        padding: 12px;
+                        margin: 8px 0;
+                        background: #f5f5f5;
+                        border-left: 4px solid green;
+                        list-style: none;
+                    }
+                    ul {
+                        padding: 0;
+                    }
+                </style>
+            </head>
+            <body>
                 <h1>Todo App</h1>
-                <img src="/todo/image" style="width:80%; max-width:800px;">
+
+                <img src="/todo/image" alt="Random image">
+
+                <div class="form">
+                    <input type="text"
+                           maxlength="140"
+                           placeholder="Enter a new todo (max 140 characters)">
+                    <button type="button">Send</button>
+                </div>
+
+                <h2>Todos</h2>
+
+                <ul>
+                    <li>Learn Kubernetes basics</li>
+                    <li>Deploy application to cluster</li>
+                    <li>Configure persistent volumes</li>
+                </ul>
+
                 <p>DevOps with Kubernetes 2026</p>
             </body>
             </html>
             """
             self.respond(200, "text/html", content)
+
 
         elif self.path == "/todo/image":
             try:

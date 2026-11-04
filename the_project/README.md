@@ -1,9 +1,7 @@
 
 # Todo App
 
-Displays a random image from Lorem Picsum.
-
-Images are cached for 10 minutes using persistent storage.
+Displays a cached random image, a todo input (max 140 characters), a Send button and a list of hardcoded todos.
 
 ## Run
 
