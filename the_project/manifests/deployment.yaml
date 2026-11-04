@@ -1,9 +1,12 @@
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: todo-app
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: todo-app
@@ -14,8 +17,17 @@ spec:
     spec:
       containers:
         - name: todo-app
-          image: todo-app:1.2
+          image: todo-app:1.12
           imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
           env:
             - name: PORT
               value: "3000"
+          volumeMounts:
+            - name: image-storage
+              mountPath: /data
+      volumes:
+        - name: image-storage
+          persistentVolumeClaim:
+            claimName: todo-image-pvc
