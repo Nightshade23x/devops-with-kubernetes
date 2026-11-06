@@ -19,3 +19,6 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 - [1.11 — Persisting data](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.11)
 - [1.12 — The project, step 6](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.12)
 - [1.13 — The project, step 7](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.13/the_project)
+### Part 2
+
+- [2.1 — Connecting pods](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.1)
