@@ -22,3 +22,4 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 ### Part 2
 
 - [2.1 — Connecting pods](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.1)
+- [2.2 — The project, step 8](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.2)

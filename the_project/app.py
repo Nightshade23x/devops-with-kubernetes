@@ -7,7 +7,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 
 PORT = int(os.environ.get("PORT", 3000))
 IMAGE = Path("/data/image.jpg")
-CACHE_TIME = 600  # 10 minutes
+CACHE_TIME = 600
 
 
 def get_image():
@@ -21,7 +21,6 @@ def get_image():
             temporary = IMAGE.with_suffix(".tmp")
             temporary.write_bytes(image)
             temporary.replace(IMAGE)
-
         except Exception:
             if not IMAGE.exists():
                 raise
@@ -31,7 +30,6 @@ def get_image():
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        
         if self.path in ("/", "/todo", "/todo/"):
             content = b"""
             <!DOCTYPE html>
@@ -71,43 +69,76 @@ class Handler(BaseHTTPRequestHandler):
                         border-left: 4px solid green;
                         list-style: none;
                     }
-                    ul {
-                        padding: 0;
-                    }
+                    ul { padding: 0; }
                 </style>
             </head>
             <body>
                 <h1>Todo App</h1>
-
                 <img src="/todo/image" alt="Random image">
 
-                <div class="form">
-                    <input type="text"
-                           maxlength="140"
+                <form class="form" id="todo-form">
+                    <input id="todo-input" type="text"
+                           maxlength="140" required
                            placeholder="Enter a new todo (max 140 characters)">
-                    <button type="button">Send</button>
-                </div>
+                    <button type="submit">Send</button>
+                </form>
 
                 <h2>Todos</h2>
-
-                <ul>
-                    <li>Learn Kubernetes basics</li>
-                    <li>Deploy application to cluster</li>
-                    <li>Configure persistent volumes</li>
-                </ul>
+                <ul id="todo-list"></ul>
 
                 <p>DevOps with Kubernetes 2026</p>
+
+                <script>
+                    async function loadTodos() {
+                        const response = await fetch("/todos");
+                        if (!response.ok) throw new Error("Could not load todos");
+                        const todos = await response.json();
+
+                        const list = document.getElementById("todo-list");
+                        list.replaceChildren();
+
+                        todos.forEach(todo => {
+                            const item = document.createElement("li");
+                            item.textContent = todo;
+                            list.appendChild(item);
+                        });
+                    }
+
+                    document.getElementById("todo-form")
+                        .addEventListener("submit", async (event) => {
+                            event.preventDefault();
+
+                            const input = document.getElementById("todo-input");
+                            const todo = input.value.trim();
+                            if (!todo || todo.length > 140) return;
+
+                            try {
+                                const response = await fetch("/todos", {
+                                    method: "POST",
+                                    headers: {"Content-Type": "application/json"},
+                                    body: JSON.stringify({todo: todo})
+                                });
+
+                                if (!response.ok) throw new Error("Could not add todo");
+
+                                input.value = "";
+                                await loadTodos();
+                            } catch (error) {
+                                alert(error.message);
+                            }
+                        });
+
+                    loadTodos().catch(error => alert(error.message));
+                </script>
             </body>
             </html>
             """
             self.respond(200, "text/html", content)
 
-
         elif self.path == "/todo/image":
             try:
                 self.respond(200, "image/jpeg", get_image())
-            except Exception as error:
-                print(error, flush=True)
+            except Exception:
                 self.respond(503, "text/plain", b"Image unavailable")
 
         else:

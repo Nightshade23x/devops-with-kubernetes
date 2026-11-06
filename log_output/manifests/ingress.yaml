@@ -8,7 +8,23 @@ spec:
   rules:
     - http:
         paths:
+          - path: /todos
+            pathType: Exact
+            backend:
+              service:
+                name: todo-backend
+                port:
+                  number: 3000
+
           - path: /todo
+            pathType: Exact
+            backend:
+              service:
+                name: todo-app
+                port:
+                  number: 3000
+
+          - path: /todo/
             pathType: Prefix
             backend:
               service:
@@ -25,7 +41,7 @@ spec:
                   number: 3000
 
           - path: /
-            pathType: Prefix
+            pathType: Exact
             backend:
               service:
                 name: log-output
