@@ -1,16 +1,16 @@
 
 # Log output
 
-Writes a timestamp and UUID to a shared file every 5 seconds.
+Generates a timestamp and UUID every 5 seconds.
 
-The reader container serves the status and Ping-pong counter through HTTP.
+Uses a ConfigMap for a file and environment variable. Gets the Ping-pong counter through HTTP.
 
 ## Run
 
 ```bash
-docker build -t log-output:1.11 .
-k3d image import log-output:1.11 -c dwk
+docker build -t log-output:2.5 .
+k3d image import log-output:2.5 -c dwk
 kubectl apply -f manifests/
 ```
 
-Access at http://localhost:8081/
+Open http://localhost:8081/

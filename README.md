@@ -25,3 +25,4 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 - [2.2 — The project, step 8](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.2)
 - [2.3 — Keep them separated](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.3)
 - [2.4 — The project, step 9](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.4)
+- [2.5 — Documentation and ConfigMaps](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.5/log_output)
