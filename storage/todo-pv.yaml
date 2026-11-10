@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: todo-image-pv
+  name: todo-image-project-pv
 spec:
   capacity:
     storage: 1Gi
@@ -11,5 +11,5 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   hostPath:
-    path: /data/dwk-todo-images
+    path: /data/dwk-todo-project-images
     type: DirectoryOrCreate
