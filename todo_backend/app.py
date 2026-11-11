@@ -1,7 +1,10 @@
 
 import json
+import os
 from http.server import HTTPServer, BaseHTTPRequestHandler
-
+PORT = int(os.environ["PORT"])
+HOST = os.environ["HOST"]
+TODOS_PATH = os.environ["TODOS_PATH"]
 todos = [
     "Learn Kubernetes basics",
     "Deploy application to cluster",
@@ -10,14 +13,14 @@ todos = [
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path != "/todos":
+        if self.path != TODOS_PATH:
             self.send_error(404)
             return
 
         self.respond(200, todos)
 
     def do_POST(self):
-        if self.path != "/todos":
+        if self.path != TODOS_PATH:
             self.send_error(404)
             return
 
@@ -45,5 +48,5 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-print("Todo backend started on port 3000", flush=True)
-HTTPServer(("0.0.0.0", 3000), Handler).serve_forever()
+print(f"Todo backend started on port {PORT}", flush=True)
+HTTPServer((HOST, PORT), Handler).serve_forever()

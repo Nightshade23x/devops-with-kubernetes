@@ -5,14 +5,19 @@ from pathlib import Path
 from urllib.request import urlopen
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-PORT = int(os.environ.get("PORT", 3000))
-IMAGE = Path("/data/image.jpg")
-CACHE_TIME = 600
+PORT = int(os.environ["PORT"])
+HOST = os.environ["HOST"]
+IMAGE = Path(os.environ["IMAGE_FILE"])
+CACHE_TIME = int(os.environ["CACHE_SECONDS"])
+PICSUM_URL = os.environ["PICSUM_URL"]
+TODO_PAGE_PATH = os.environ["TODO_PAGE_PATH"]
+IMAGE_ROUTE = os.environ["IMAGE_ROUTE"]
+TODOS_PATH = os.environ["TODOS_PATH"]
 
 
 def get_image():
     if not IMAGE.exists() or time.time() - IMAGE.stat().st_mtime >= CACHE_TIME:
-        url = f"https://picsum.photos/800/500.jpg?random={time.time_ns()}"
+        url = f"{PICSUM_URL}?random={time.time_ns()}"
 
         try:
             with urlopen(url, timeout=15) as response:
@@ -30,7 +35,7 @@ def get_image():
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path in ("/", "/todo", "/todo/"):
+        if self.path in ("/", TODO_PAGE_PATH, TODO_PAGE_PATH + "/"):
             content = b"""
             <!DOCTYPE html>
             <html>
@@ -74,7 +79,7 @@ class Handler(BaseHTTPRequestHandler):
             </head>
             <body>
                 <h1>Todo App</h1>
-                <img src="/todo/image" alt="Random image">
+                <img src="__IMAGE_ROUTE__" alt="Random image">
 
                 <form class="form" id="todo-form">
                     <input id="todo-input" type="text"
@@ -90,7 +95,7 @@ class Handler(BaseHTTPRequestHandler):
 
                 <script>
                     async function loadTodos() {
-                        const response = await fetch("/todos");
+                        const response = await fetch("__TODOS_PATH__");
                         if (!response.ok) throw new Error("Could not load todos");
                         const todos = await response.json();
 
@@ -133,9 +138,15 @@ class Handler(BaseHTTPRequestHandler):
             </body>
             </html>
             """
+            content = content.replace(
+                b"__IMAGE_ROUTE__", IMAGE_ROUTE.encode()
+            )
+            content = content.replace(
+                b"__TODOS_PATH__", TODOS_PATH.encode()
+            )
             self.respond(200, "text/html", content)
 
-        elif self.path == "/todo/image":
+        elif self.path == IMAGE_ROUTE:
             try:
                 self.respond(200, "image/jpeg", get_image())
             except Exception:
@@ -154,4 +165,4 @@ class Handler(BaseHTTPRequestHandler):
 
 
 print(f"Server started in port {PORT}", flush=True)
-HTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
+HTTPServer((HOST, PORT), Handler).serve_forever()

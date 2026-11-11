@@ -2,6 +2,7 @@
 # Todo App
 
 Displays a cached random image, a todo input (max 140 characters), a Send button and a list of hardcoded todos.
+Configuration is provided through Kubernetes environment variables.
 
 ## Run
 

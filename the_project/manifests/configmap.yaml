@@ -1,0 +1,15 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: project-config
+  namespace: project
+data:
+  PORT: "3000"
+  HOST: "0.0.0.0"
+  PICSUM_URL: "https://picsum.photos/800/500.jpg"
+  CACHE_SECONDS: "600"
+  IMAGE_FILE: "/data/image.jpg"
+  TODO_PAGE_PATH: "/todo"
+  IMAGE_ROUTE: "/todo/image"
+  TODOS_PATH: "/todos"
