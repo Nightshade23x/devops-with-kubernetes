@@ -13,3 +13,7 @@ data:
   TODO_PAGE_PATH: "/todo"
   IMAGE_ROUTE: "/todo/image"
   TODOS_PATH: "/todos"
+  DB_HOST: "todo-postgres"
+  DB_PORT: "5432"
+  DB_NAME: "todos"
+  DB_USER: "todos"
