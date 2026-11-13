@@ -74,6 +74,7 @@ class Handler(BaseHTTPRequestHandler):
             print(error, flush=True)
             self.send_error(503, "Database unavailable")
 
+    
     def do_POST(self):
         if self.path != TODOS_PATH:
             self.send_error(404)
@@ -83,22 +84,30 @@ class Handler(BaseHTTPRequestHandler):
             length = int(self.headers.get("Content-Length", 0))
             data = json.loads(self.rfile.read(length))
         except (ValueError, json.JSONDecodeError):
+            print("TODO_REJECTED reason=invalid_json", flush=True)
             self.send_error(400, "Invalid JSON")
             return
 
-        if not isinstance(data, dict):
+        if not isinstance(data, dict) or not isinstance(data.get("todo"), str):
+            print("TODO_REJECTED reason=invalid_todo", flush=True)
             self.send_error(400, "Invalid todo")
             return
 
-        todo = data.get("todo")
+        todo = data["todo"].strip()
 
-        if not isinstance(todo, str):
-            self.send_error(400, "Invalid todo")
-            return
-
-        todo = todo.strip()
+        print(
+            f"TODO_RECEIVED length={len(todo)} "
+            f"content={json.dumps(todo, ensure_ascii=False)}",
+            flush=True
+        )
 
         if not todo or len(todo) > 140:
+            print(
+                f"TODO_REJECTED reason=invalid_length "
+                f"length={len(todo)} "
+                f"content={json.dumps(todo, ensure_ascii=False)}",
+                flush=True
+            )
             self.send_error(400, "Todo must have 1-140 characters")
             return
 
@@ -107,14 +116,20 @@ class Handler(BaseHTTPRequestHandler):
                 with connection.cursor() as cursor:
                     cursor.execute(
                         "INSERT INTO todos (content) VALUES (%s)",
-                        (todo,),
+                        (todo,)
                     )
+
+            print(
+                f"TODO_SAVED content={json.dumps(todo, ensure_ascii=False)}",
+                flush=True
+            )
 
             self.send_json(201, {"todo": todo})
 
         except psycopg.Error as error:
-            print(error, flush=True)
+            print(f"TODO_FAILED database_error={error}", flush=True)
             self.send_error(503, "Database unavailable")
+
 
 
 initialize_database()

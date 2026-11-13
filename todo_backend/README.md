@@ -13,3 +13,4 @@ docker build -t todo-backend:2.2 .
 k3d image import todo-backend:2.2 -c dwk
 kubectl apply -f manifests/
 ```
+Logs accepted and rejected todo requests. Todos longer than 140 characters are rejected.
