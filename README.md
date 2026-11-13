@@ -29,3 +29,4 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 - [2.6 — The project, step 10](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.6)
 - [2.7 — Stateful applications](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.7)
 - [2.8 — The project, step 11](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.8)
+- [2.9 — The project, step 12](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.9)

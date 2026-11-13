@@ -1,0 +1,26 @@
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: wikipedia-reminder
+  namespace: project
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: wikipedia-reminder
+              image: todo-cronjob:2.9
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: WIKIPEDIA_URL
+                  value: "https://en.wikipedia.org/wiki/Special:Random"
+                - name: TODO_API_URL
+                  value: "http://todo-backend:3000/todos"
