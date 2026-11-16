@@ -24,3 +24,7 @@ GKE configurations are in `gke-deployment.yaml` and `gke-service.yaml`.
 
 Ping-pong is exposed at `/pingpong` through GKE Ingress.
 The `/` endpoint returns HTTP 200 for health checks.
+
+## Gateway API
+
+Ping-pong is exposed at `/pingpong` using GKE Gateway API.
