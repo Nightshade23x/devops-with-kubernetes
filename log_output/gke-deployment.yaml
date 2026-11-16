@@ -1,0 +1,57 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-output
+  namespace: exercises
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log-output
+  template:
+    metadata:
+      labels:
+        app: log-output
+    spec:
+      containers:
+        - name: log-writer
+          image: europe-north1-docker.pkg.dev/gen-lang-client-0541268770/dwk-images/log-output:3.2
+          command: ["python", "-u", "app.py"]
+          volumeMounts:
+            - name: shared-data
+              mountPath: /shared
+
+        - name: log-reader
+          image: europe-north1-docker.pkg.dev/gen-lang-client-0541268770/dwk-images/log-output:3.2
+          command: ["python", "-u", "server.py"]
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MESSAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: log-output-config
+                  key: MESSAGE
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: shared-data
+              mountPath: /shared
+            - name: config-data
+              mountPath: /config
+              readOnly: true
+
+      volumes:
+        - name: shared-data
+          emptyDir: {}
+        - name: config-data
+          configMap:
+            name: log-output-config
+            items:
+              - key: information.txt
+                path: information.txt

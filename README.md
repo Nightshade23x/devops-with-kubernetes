@@ -34,3 +34,4 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 
 ### Part 3
 - [3.1 — Pingpong GKE](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.1)
+- [3.2 — Back to Ingress](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.2)

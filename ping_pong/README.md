@@ -19,3 +19,8 @@ kubectl apply -f manifests/
 Deployed Ping-pong to Google Kubernetes Engine using a LoadBalancer Service and PostgreSQL.
 
 GKE configurations are in `gke-deployment.yaml` and `gke-service.yaml`.
+
+## GKE Ingress
+
+Ping-pong is exposed at `/pingpong` through GKE Ingress.
+The `/` endpoint returns HTTP 200 for health checks.

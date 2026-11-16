@@ -14,3 +14,7 @@ kubectl apply -f manifests/
 ```
 
 Open http://localhost:8081/
+
+## GKE
+
+Log output is deployed to GKE and exposed at `/` through an Ingress.
