@@ -42,7 +42,7 @@ def initialize_database():
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
 
-        if self.path == "/":
+        if self.path == "/health":
             body = b"OK"
             self.send_response(200)
             self.send_header("Content-Type", "text/plain")
@@ -51,14 +51,14 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(body)
             return
 
-        if self.path not in ("/pingpong", "/pings"):
+        if self.path not in ("/", "/pings"):
             self.send_error(404)
             return
 
         try:
             with connect() as connection:
                 with connection.cursor() as cursor:
-                    if self.path == "/pingpong":
+                    if self.path == "/":
                         cursor.execute("""
                             UPDATE ping_count
                             SET value = value + 1

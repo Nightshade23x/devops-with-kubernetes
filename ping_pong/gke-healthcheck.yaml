@@ -11,7 +11,7 @@ spec:
       httpHealthCheck:
         portSpecification: USE_FIXED_PORT
         port: 3000
-        requestPath: /
+        requestPath: /health
   targetRef:
     group: ""
     kind: Service

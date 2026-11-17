@@ -28,3 +28,9 @@ The `/` endpoint returns HTTP 200 for health checks.
 ## Gateway API
 
 Ping-pong is exposed at `/pingpong` using GKE Gateway API.
+
+## Gateway URL rewriting
+
+Ping-pong handles requests at `/`. Gateway API rewrites `/pingpong` to `/`.
+
+The `/health` endpoint is used for health checks.

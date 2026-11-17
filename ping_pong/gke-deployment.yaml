@@ -16,13 +16,13 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: europe-north1-docker.pkg.dev/gen-lang-client-0541268770/dwk-images/ping-pong:3.2
+          image: europe-north1-docker.pkg.dev/gen-lang-client-0541268770/dwk-images/ping-pong:3.4
           ports:
             - containerPort: 3000
 
           readinessProbe:
             httpGet:
-              path: /
+              path: /health
               port: 3000
             initialDelaySeconds: 5
             periodSeconds: 10
