@@ -1,0 +1,18 @@
+
+apiVersion: networking.gke.io/v1
+kind: HealthCheckPolicy
+metadata:
+  name: todo-backend-healthcheck
+  namespace: project
+spec:
+  default:
+    config:
+      type: HTTP
+      httpHealthCheck:
+        portSpecification: USE_FIXED_PORT
+        port: 3000
+        requestPath: /todos
+  targetRef:
+    group: ""
+    kind: Service
+    name: todo-backend
