@@ -17,3 +17,5 @@ kubectl apply -f ../log_output/manifests/ingress.yaml
 ```
 
 Open http://localhost:8081/todo
+
+Automatic GKE deployment is configured using GitHub Actions and Kustomize.
