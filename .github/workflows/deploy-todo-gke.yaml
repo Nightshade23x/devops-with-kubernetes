@@ -111,22 +111,15 @@ jobs:
               --from-literal=POSTGRES_PASSWORD="$PASSWORD"
           fi
 
+      
       - name: Configure Kustomize
         shell: bash
         run: |
           sed -i -E "s/^( *newTag:).*/\1 \"$GITHUB_SHA\"/" kustomization.yaml
 
-          mkdir -p .deploy-overlay
+          sed -i -E "s/^namespace:.*/namespace: ${TARGET_NAMESPACE}/" kustomization.yaml
 
-          cat > .deploy-overlay/kustomization.yaml <<EOF
-          apiVersion: kustomize.config.k8s.io/v1beta1
-          kind: Kustomization
-          resources:
-            - ../
-          namespace: ${TARGET_NAMESPACE}
-          EOF
-
-          kubectl kustomize .deploy-overlay > /tmp/todo-rendered.yaml
+          kubectl kustomize . > /tmp/todo-rendered.yaml
 
           if [[ "$TARGET_NAMESPACE" != "project" ]] &&
              grep -q '^  namespace: project$' /tmp/todo-rendered.yaml; then
@@ -136,10 +129,11 @@ jobs:
 
           grep -E "namespace:|image:" /tmp/todo-rendered.yaml
 
+
       - name: Deploy to GKE
         shell: bash
         run: |
-          kubectl apply -k .deploy-overlay
+          kubectl apply -k .
 
           kubectl scale statefulset/todo-postgres \
             --replicas=1 -n "$TARGET_NAMESPACE"
