@@ -5,7 +5,7 @@ kind: Kustomization
 namespace: project
 
 resources:
-  - gke_project/namespace.yaml
+  
   - gke_project/todo-image-pvc.yaml
   - gke_project/gateway.yaml
   - gke_project/httproute.yaml

@@ -3,15 +3,8 @@ name: Deploy Todo to GKE
 
 on:
   push:
-    branches: [main]
-    paths:
-      - "the_project/**"
-      - "todo_backend/**"
-      - "todo_postgres/**"
-      - "todo_cronjob/**"
-      - "gke_project/**"
-      - "kustomization.yaml"
-      - ".github/workflows/deploy-todo-gke.yaml"
+    branches:
+      - "**"
   workflow_dispatch:
 
 permissions:
@@ -19,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: todo-gke-deployment
+  group: todo-gke-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -30,12 +23,43 @@ env:
 
 jobs:
   deploy:
+    if: github.event_name == 'workflow_dispatch' || !github.event.deleted
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Determine namespace
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF_NAME" == "main" ]]; then
+            NAMESPACE="project"
+          else
+            NAMESPACE="$GITHUB_REF_NAME"
+          fi
+
+          if [[ ! "$NAMESPACE" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ ]] ||
+             [[ ${#NAMESPACE} -gt 63 ]]; then
+            echo "Invalid namespace: $NAMESPACE"
+            exit 1
+          fi
+
+          if [[ "$GITHUB_REF_NAME" != "main" ]] &&
+             [[ "$NAMESPACE" == "project" ||
+                "$NAMESPACE" == "default" ||
+                "$NAMESPACE" == "kube-system" ||
+                "$NAMESPACE" == "kube-public" ||
+                "$NAMESPACE" == "kube-node-lease" ||
+                "$NAMESPACE" == "exercises" ||
+                "$NAMESPACE" == "monitoring" ]]; then
+            echo "Reserved namespace: $NAMESPACE"
+            exit 1
+          fi
+
+          echo "TARGET_NAMESPACE=$NAMESPACE" >> "$GITHUB_ENV"
+          echo "Deploying branch $GITHUB_REF_NAME to $NAMESPACE"
 
       - name: Authenticate to Google Cloud
         id: auth
@@ -71,28 +95,81 @@ jobs:
           location: ${{ env.REGION }}
           project_id: ${{ env.PROJECT_ID }}
 
-      - name: Update Kustomize image tags
+      - name: Create namespace and database secret
+        shell: bash
         run: |
-          sed -i "s/newTag: \"3.5\"/newTag: \"$GITHUB_SHA\"/g" kustomization.yaml
-          kubectl kustomize . | grep "image:"
+          kubectl create namespace "$TARGET_NAMESPACE" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          if ! kubectl get secret todo-db-secret \
+            -n "$TARGET_NAMESPACE" >/dev/null 2>&1; then
+
+            PASSWORD=$(openssl rand -hex 24)
+
+            kubectl create secret generic todo-db-secret \
+              -n "$TARGET_NAMESPACE" \
+              --from-literal=POSTGRES_PASSWORD="$PASSWORD"
+          fi
+
+      - name: Configure Kustomize
+        shell: bash
+        run: |
+          sed -i -E "s/^( *newTag:).*/\1 \"$GITHUB_SHA\"/" kustomization.yaml
+
+          mkdir -p .deploy-overlay
+
+          cat > .deploy-overlay/kustomization.yaml <<EOF
+          apiVersion: kustomize.config.k8s.io/v1beta1
+          kind: Kustomization
+          resources:
+            - ../
+          namespace: ${TARGET_NAMESPACE}
+          EOF
+
+          kubectl kustomize .deploy-overlay > /tmp/todo-rendered.yaml
+
+          if [[ "$TARGET_NAMESPACE" != "project" ]] &&
+             grep -q '^  namespace: project$' /tmp/todo-rendered.yaml; then
+            echo "Unexpected resource in project namespace"
+            exit 1
+          fi
+
+          grep -E "namespace:|image:" /tmp/todo-rendered.yaml
 
       - name: Deploy to GKE
+        shell: bash
         run: |
-          kubectl apply -k .
+          kubectl apply -k .deploy-overlay
 
-          kubectl scale statefulset/todo-postgres --replicas=1 -n project
-          kubectl rollout status statefulset/todo-postgres -n project --timeout=20m
+          kubectl scale statefulset/todo-postgres \
+            --replicas=1 -n "$TARGET_NAMESPACE"
 
-          kubectl scale deployment/todo-backend --replicas=1 -n project
-          kubectl rollout status deployment/todo-backend -n project --timeout=20m
+          kubectl rollout status statefulset/todo-postgres \
+            -n "$TARGET_NAMESPACE" --timeout=20m
 
-          kubectl scale deployment/todo-app --replicas=1 -n project
-          kubectl rollout status deployment/todo-app -n project --timeout=20m
+          kubectl scale deployment/todo-backend \
+            --replicas=1 -n "$TARGET_NAMESPACE"
 
-          kubectl patch cronjob wikipedia-reminder -n project --type=merge -p '{"spec":{"suspend":false}}'
+          kubectl rollout status deployment/todo-backend \
+            -n "$TARGET_NAMESPACE" --timeout=20m
+
+          kubectl scale deployment/todo-app \
+            --replicas=1 -n "$TARGET_NAMESPACE"
+
+          kubectl rollout status deployment/todo-app \
+            -n "$TARGET_NAMESPACE" --timeout=20m
+
+          kubectl patch cronjob wikipedia-reminder \
+            -n "$TARGET_NAMESPACE" \
+            --type=merge \
+            -p '{"spec":{"suspend":false}}'
 
       - name: Verify deployment
         run: |
-          kubectl get deployments,statefulsets,cronjobs -n project
-          kubectl get pods -n project
-          kubectl get gateway -n project
+          echo "Namespace: $TARGET_NAMESPACE"
+          kubectl get deployments,statefulsets,cronjobs \
+            -n "$TARGET_NAMESPACE"
+
+          kubectl get pods -n "$TARGET_NAMESPACE"
+          kubectl get pvc -n "$TARGET_NAMESPACE"
+          kubectl get gateway -n "$TARGET_NAMESPACE"

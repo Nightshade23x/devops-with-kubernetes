@@ -39,3 +39,4 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 - [3.4 — Rewritten routing](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.4)
 - [3.5 — The project, step 14](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.5)
 - [3.6 — The project, step 15](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.6)
+- [3.7 — The project, step 16](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.7)
