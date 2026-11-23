@@ -1,0 +1,83 @@
+
+name: Delete Todo Branch Environment
+
+on:
+  delete:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  cleanup:
+    if: github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+
+    env:
+      TARGET_NAMESPACE: ${{ github.event.ref }}
+      PROJECT_ID: gen-lang-client-0541268770
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate namespace
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Deleted branch: $TARGET_NAMESPACE"
+
+          if [[ ! "$TARGET_NAMESPACE" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ ]] ||
+             [[ ${#TARGET_NAMESPACE} -gt 63 ]]; then
+            echo "Invalid namespace name"
+            exit 1
+          fi
+
+          case "$TARGET_NAMESPACE" in
+            main|project|default|exercises|monitoring|kube-system|kube-public|kube-node-lease)
+              echo "Protected namespace: $TARGET_NAMESPACE"
+              exit 1
+              ;;
+          esac
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          workload_identity_provider: projects/323761286419/locations/global/workloadIdentityPools/gh-dwk/providers/github
+          service_account: github-todo-deployer@gen-lang-client-0541268770.iam.gserviceaccount.com
+
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v3
+        with:
+          cluster_name: dwk-gke
+          location: europe-north1
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Delete branch environment
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          NAMESPACE="$TARGET_NAMESPACE"
+
+          if ! kubectl get namespace "$NAMESPACE" >/dev/null 2>&1; then
+            echo "Namespace does not exist. Nothing to delete."
+            exit 0
+          fi
+
+          kubectl get deployment todo-app -n "$NAMESPACE"
+
+          echo "Deleting Gateway..."
+          kubectl delete gateway todo-gateway \
+            -n "$NAMESPACE" \
+            --ignore-not-found \
+            --timeout=20m
+
+          echo "Deleting namespace..."
+          kubectl delete namespace "$NAMESPACE" \
+            --timeout=20m
+
+          echo "Environment $NAMESPACE deleted successfully"
