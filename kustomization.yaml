@@ -23,6 +23,8 @@ resources:
   - todo_postgres/manifests/service.yaml
 
   - todo_cronjob/manifests/cronjob.yaml
+  - gke_project/backup-serviceaccount.yaml
+  - gke_project/todo-backup-cronjob.yaml
 
 images:
   - name: todo-app

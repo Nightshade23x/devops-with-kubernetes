@@ -165,6 +165,12 @@ jobs:
             -n "$TARGET_NAMESPACE" \
             --type=merge \
             -p '{"spec":{"suspend":false}}'
+          if [[ "$TARGET_NAMESPACE" != "project" ]]; then
+            kubectl patch cronjob todo-db-backup \
+              -n "$TARGET_NAMESPACE" \
+              --type=merge \
+              -p '{"spec":{"suspend":true}}'
+          fi
 
       - name: Verify deployment
         shell: bash

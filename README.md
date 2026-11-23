@@ -42,3 +42,4 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 - [3.7 — The project, step 16](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.7)
 - [3.8 — The project, step 17](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.8)
 - [3.9 — DBaaS vs DIY](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.9)
+- [3.10 — The project, step 18](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.10)

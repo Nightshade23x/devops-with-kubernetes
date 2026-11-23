@@ -49,3 +49,11 @@ Automatic GKE deployment is configured using GitHub Actions and Kustomize.
 ### Conclusion
 
 DBaaS is preferable for production applications where reliability and reduced maintenance are important. DIY is suitable for learning and smaller projects where control and potentially lower infrastructure costs matter more.
+
+## Database backups
+
+A Kubernetes CronJob backs up the Todo PostgreSQL database daily at 02:00 UTC using `pg_dump`.
+
+Backups are uploaded to a private Google Cloud Storage bucket using Workload Identity Federation for GKE.
+
+The backup resources are defined in `gke_project/`.

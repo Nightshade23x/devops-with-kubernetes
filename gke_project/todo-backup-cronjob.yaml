@@ -1,0 +1,107 @@
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: todo-db-backup
+spec:
+  schedule: "0 2 * * *"
+  timeZone: "Etc/UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          serviceAccountName: todo-backup
+          restartPolicy: Never
+
+          volumes:
+            - name: backup-data
+              emptyDir: {}
+
+          initContainers:
+            - name: dump
+              image: postgres:16-alpine
+              command: ["/bin/sh", "-ec"]
+              args:
+                - |
+                  pg_dump \
+                    -h todo-postgres \
+                    -U todos \
+                    -d todos \
+                    -f "/backup/backup-$(date -u +%Y%m%dT%H%M%SZ).sql"
+                  echo "Database dump completed"
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: todo-db-secret
+                      key: POSTGRES_PASSWORD
+              volumeMounts:
+                - name: backup-data
+                  mountPath: /backup
+
+          containers:
+            - name: upload
+              image: python:3.13-slim
+              command: ["python", "-c"]
+              args:
+                - |
+                  import json
+                  import os
+                  from pathlib import Path
+                  from urllib.parse import quote
+                  from urllib.request import Request, urlopen
+
+                  bucket = os.environ["BUCKET_NAME"]
+                  namespace = os.environ["POD_NAMESPACE"]
+                  backup = next(Path("/backup").glob("*.sql"))
+
+                  metadata_url = (
+                      "http://metadata.google.internal/computeMetadata/v1/"
+                      "instance/service-accounts/default/token"
+                  )
+
+                  token_request = Request(
+                      metadata_url,
+                      headers={"Metadata-Flavor": "Google"}
+                  )
+
+                  with urlopen(token_request, timeout=30) as response:
+                      token = json.load(response)["access_token"]
+
+                  object_name = f"{namespace}/{backup.name}"
+                  upload_url = (
+                      f"https://storage.googleapis.com/upload/storage/v1/b/"
+                      f"{bucket}/o?uploadType=media&name="
+                      f"{quote(object_name, safe='')}"
+                  )
+
+                  upload_request = Request(
+                      upload_url,
+                      data=backup.read_bytes(),
+                      headers={
+                          "Authorization": f"Bearer {token}",
+                          "Content-Type": "application/sql",
+                      },
+                      method="POST",
+                  )
+
+                  with urlopen(upload_request, timeout=120) as response:
+                      print(
+                          f"Uploaded gs://{bucket}/{object_name} "
+                          f"(HTTP {response.status})"
+                      )
+              env:
+                - name: BUCKET_NAME
+                  value: dwk-todo-backups-323761286419
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+              volumeMounts:
+                - name: backup-data
+                  mountPath: /backup
