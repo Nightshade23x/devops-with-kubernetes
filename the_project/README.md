@@ -19,3 +19,33 @@ kubectl apply -f ../log_output/manifests/ingress.yaml
 Open http://localhost:8081/todo
 
 Automatic GKE deployment is configured using GitHub Actions and Kustomize.
+
+
+## 3.9 — DBaaS vs DIY
+### DBaaS
+
+**Pros:**
+- Easy to set up, with very little configration required.
+- Automatic backups and easier database recovery.
+- Provider handles the updates, maintenance and much of the scaling.
+
+**Cons:**
+- Generally higher infrastructure costs.
+- Less control over the database infrastructure.
+- Dependence on the cloud provider.
+
+### DIY (PostgreSQL in Kubernetes)
+
+**Pros:**
+- More control over database configuration and deployment.
+- Can be cheaper for small workloads when using existing infrastructure.
+- Easier to customize and move between environments.
+
+**Cons:**
+- More initial setup work, including storage and networking.
+- Responsible for updates, monitoring, security and recovery.
+- Backups must be configured and managed manually, using tools such as `pg_dump`. Restores must also be tested.
+
+### Conclusion
+
+DBaaS is preferable for production applications where reliability and reduced maintenance are important. DIY is suitable for learning and smaller projects where control and potentially lower infrastructure costs matter more.
