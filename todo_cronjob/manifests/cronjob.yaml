@@ -24,3 +24,14 @@ spec:
                   value: "https://en.wikipedia.org/wiki/Special:Random"
                 - name: TODO_API_URL
                   value: "http://todo-backend:3000/todos"
+  
+            - name: wikipedia-reminder
+              image: todo-cronjob:2.9
+              resources:
+                requests:
+                  cpu: "250m"
+                  memory: "512Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "1Gi"
+
