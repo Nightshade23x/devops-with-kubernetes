@@ -19,17 +19,6 @@ spec:
       containers:
         - name: todo-backend
           image: todo-backend:2.10
-
-        - name: todo-backend
-          image: todo-backend:2.10
-          resources:
-            requests:
-              cpu: "250m"
-              memory: "512Mi"
-            limits:
-              cpu: "500m"
-              memory: "1Gi"
-
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
@@ -42,3 +31,10 @@ spec:
                 secretKeyRef:
                   name: todo-db-secret
                   key: POSTGRES_PASSWORD
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"

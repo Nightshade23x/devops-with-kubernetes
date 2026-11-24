@@ -19,9 +19,12 @@ spec:
       containers:
         - name: todo-app
           image: todo-app:2.6
-
-        - name: todo-app
-          image: todo-app:2.6
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: project-config
           resources:
             requests:
               cpu: "250m"
@@ -29,13 +32,6 @@ spec:
             limits:
               cpu: "500m"
               memory: "1Gi"
-
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 3000
-          envFrom:
-            - configMapRef:
-                name: project-config
           volumeMounts:
             - name: image-storage
               mountPath: /data
