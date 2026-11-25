@@ -48,3 +48,4 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 ### Part 4
 - [4.1 — Readiness probe](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.1)
 - [4.2 — The project, step 21](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.2)
+- [4.3 — Prometheus](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.3)
