@@ -1,4 +1,3 @@
-
 apiVersion: networking.gke.io/v1
 kind: HealthCheckPolicy
 metadata:
@@ -11,7 +10,7 @@ spec:
       httpHealthCheck:
         portSpecification: USE_FIXED_PORT
         port: 3000
-        requestPath: /todos
+        requestPath: /ready
   targetRef:
     group: ""
     kind: Service
