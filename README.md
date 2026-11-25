@@ -45,3 +45,6 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 - [3.10 — The project, step 18](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.10)
 - [3.11 — The project, step 19](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.11)
 - [3.12 — The project, step 20](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.12)
+
+### Part 4
+- [4.1 — Readiness probe](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.1)

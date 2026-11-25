@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: ping-pong:2.7
+          image: europe-north1-docker.pkg.dev/gen-lang-client-0541268770/dwk-images/ping-pong:4.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
@@ -38,3 +38,11 @@ spec:
                 secretKeyRef:
                   name: ping-pong-db-secret
                   key: POSTGRES_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 6
+            failureThreshold: 2

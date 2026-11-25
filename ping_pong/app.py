@@ -1,7 +1,9 @@
 
 import os
-import psycopg
 from http.server import HTTPServer, BaseHTTPRequestHandler
+
+import psycopg
+
 
 PORT = int(os.environ.get("PORT", 3000))
 
@@ -19,46 +21,57 @@ def connect():
         dbname=DB_NAME,
         user=DB_USER,
         password=DB_PASSWORD,
-        connect_timeout=5
+        connect_timeout=5,
     )
 
 
-def initialize_database():
-    with connect() as connection:
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS ping_count (
-                    id INTEGER PRIMARY KEY,
-                    value INTEGER NOT NULL
-                )
-            """)
-            cursor.execute("""
-                INSERT INTO ping_count (id, value)
-                VALUES (1, 0)
-                ON CONFLICT (id) DO NOTHING
-            """)
+def initialize_database(cursor):
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ping_count (
+            id INTEGER PRIMARY KEY,
+            value INTEGER NOT NULL
+        )
+    """)
+    cursor.execute("""
+        INSERT INTO ping_count (id, value)
+        VALUES (1, 0)
+        ON CONFLICT (id) DO NOTHING
+    """)
 
 
 class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):
+    def send_text(self, status, text):
+        body = text.encode()
 
+        self.send_response(status)
+        self.send_header("Content-Type", "text/plain")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self):
         if self.path == "/health":
-            body = b"OK"
-            self.send_response(200)
-            self.send_header("Content-Type", "text/plain")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
+            self.send_text(200, "OK")
             return
 
-        if self.path not in ("/", "/pings"):
+        if self.path not in ("/", "/pings", "/ready"):
             self.send_error(404)
             return
 
         try:
             with connect() as connection:
                 with connection.cursor() as cursor:
-                    if self.path == "/":
+                    initialize_database(cursor)
+
+                    if self.path == "/ready":
+                        cursor.execute(
+                            "SELECT value FROM ping_count WHERE id = 1"
+                        )
+                        if cursor.fetchone() is None:
+                            raise RuntimeError("Ping counter not initialized")
+                        response = "Ready"
+
+                    elif self.path == "/":
                         cursor.execute("""
                             UPDATE ping_count
                             SET value = value + 1
@@ -67,26 +80,20 @@ class Handler(BaseHTTPRequestHandler):
                         """)
                         count = cursor.fetchone()[0]
                         response = f"pong {count - 1}"
+
                     else:
                         cursor.execute(
                             "SELECT value FROM ping_count WHERE id = 1"
                         )
                         response = str(cursor.fetchone()[0])
 
-        except psycopg.Error as error:
-            print(error, flush=True)
+        except (psycopg.Error, OSError, RuntimeError) as error:
+            print(f"Database unavailable: {error}", flush=True)
             self.send_error(503, "Database unavailable")
             return
 
-        body = response.encode()
-        self.send_response(200)
-        self.send_header("Content-Type", "text/plain")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+        self.send_text(200, response)
 
 
-initialize_database()
-
-print(f"Server started in port {PORT}", flush=True)
+print(f"Server started on port {PORT}", flush=True)
 HTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
