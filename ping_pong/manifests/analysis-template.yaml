@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: ping-pong-cpu
+  namespace: exercises
+spec:
+  args:
+    - name: max-cpu-cores
+      value: "0.5"
+  metrics:
+    - name: namespace-cpu-rate
+      interval: 30s
+      count: 10
+      failureLimit: 0
+      successCondition: 'len(result) == 1 && result[0] < {{args.max-cpu-cores}}'
+      provider:
+        prometheus:
+          address: http://prom-prometheus-server.monitoring.svc.cluster.local
+          query: |
+            sum(rate(container_cpu_usage_seconds_total{job="kubernetes-nodes-resource",namespace="exercises",container!="",container!="POD"}[2m]))
