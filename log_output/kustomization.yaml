@@ -7,3 +7,7 @@ resources:
   - manifests/configmap.yaml
   - gke-deployment.yaml
   - gke-service.yaml
+
+images:
+  - name: europe-north1-docker.pkg.dev/gen-lang-client-0541268770/dwk-images/log-output
+    newTag: "3.2"
