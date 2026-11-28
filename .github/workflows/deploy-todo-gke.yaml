@@ -1,4 +1,3 @@
-
 name: Deploy Todo to GKE
 
 on:
@@ -25,7 +24,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,31 +32,26 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           if [[ "$GITHUB_REF_NAME" == "main" ]]; then
             NAMESPACE="project"
           else
             NAMESPACE="$GITHUB_REF_NAME"
           fi
-
           if [[ ! "$NAMESPACE" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ ]] ||
              [[ ${#NAMESPACE} -gt 63 ]]; then
             echo "Invalid namespace: $NAMESPACE"
             exit 1
           fi
-
           case "$NAMESPACE" in
             default|exercises|monitoring|kube-system|kube-public|kube-node-lease)
               echo "Reserved namespace: $NAMESPACE"
               exit 1
               ;;
           esac
-
           if [[ "$GITHUB_REF_NAME" != "main" && "$NAMESPACE" == "project" ]]; then
             echo "The project namespace is reserved for main"
             exit 1
           fi
-
           echo "TARGET_NAMESPACE=$NAMESPACE" >> "$GITHUB_ENV"
           echo "Deploying branch $GITHUB_REF_NAME to $NAMESPACE"
 
@@ -70,7 +63,6 @@ jobs:
           workload_identity_provider: projects/323761286419/locations/global/workloadIdentityPools/gh-dwk/providers/github
           service_account: github-todo-deployer@gen-lang-client-0541268770.iam.gserviceaccount.com
           token_format: access_token
-
       - name: Login to Artifact Registry
         uses: docker/login-action@v3
         with:
@@ -82,15 +74,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           docker build -t "$IMAGE_BASE/todo-app:$GITHUB_SHA" ./the_project
           docker push "$IMAGE_BASE/todo-app:$GITHUB_SHA"
-
           docker build -t "$IMAGE_BASE/todo-backend:$GITHUB_SHA" ./todo_backend
           docker push "$IMAGE_BASE/todo-backend:$GITHUB_SHA"
-
           docker build -t "$IMAGE_BASE/todo-cronjob:$GITHUB_SHA" ./todo_cronjob
           docker push "$IMAGE_BASE/todo-cronjob:$GITHUB_SHA"
+          docker build -t "$IMAGE_BASE/todo-broadcaster:$GITHUB_SHA" ./todo_broadcaster
+          docker push "$IMAGE_BASE/todo-broadcaster:$GITHUB_SHA"
 
       - name: Get GKE credentials
         uses: google-github-actions/get-gke-credentials@v3
@@ -103,15 +94,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           kubectl create namespace "$TARGET_NAMESPACE" \
             --dry-run=client -o yaml | kubectl apply -f -
-
           if ! kubectl get secret todo-db-secret \
             -n "$TARGET_NAMESPACE" >/dev/null 2>&1; then
-
             PASSWORD=$(openssl rand -hex 24)
-
             kubectl create secret generic todo-db-secret \
               -n "$TARGET_NAMESPACE" \
               --from-literal=POSTGRES_PASSWORD="$PASSWORD"
@@ -121,46 +108,44 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           sed -i -E "s/^( *newTag:).*/\1 \"$GITHUB_SHA\"/" kustomization.yaml
-
           sed -i -E "s/^namespace:.*/namespace: ${TARGET_NAMESPACE}/" kustomization.yaml
-
           kubectl kustomize . > /tmp/todo-rendered.yaml
-
           if [[ "$TARGET_NAMESPACE" != "project" ]] &&
              grep -q '^  namespace: project$' /tmp/todo-rendered.yaml; then
             echo "Unexpected resource in project namespace"
             exit 1
           fi
-
           grep -E "namespace:|image:" /tmp/todo-rendered.yaml
 
       - name: Deploy to GKE
         shell: bash
         run: |
           set -euo pipefail
-
           kubectl apply -k .
+
+          kubectl scale deployment/todo-nats --replicas=1 -n "$TARGET_NAMESPACE"
+          kubectl rollout status deployment/todo-nats \
+            -n "$TARGET_NAMESPACE" --timeout=20m
+
+          kubectl scale deployment/todo-broadcaster --replicas=1 -n "$TARGET_NAMESPACE"
+          kubectl rollout status deployment/todo-broadcaster \
+            -n "$TARGET_NAMESPACE" --timeout=20m
 
           kubectl scale statefulset/todo-postgres \
             --replicas=1 -n "$TARGET_NAMESPACE"
-
           kubectl rollout status statefulset/todo-postgres \
             -n "$TARGET_NAMESPACE" --timeout=20m
 
           kubectl scale deployment/todo-backend \
             --replicas=1 -n "$TARGET_NAMESPACE"
-
           kubectl rollout status deployment/todo-backend \
             -n "$TARGET_NAMESPACE" --timeout=20m
 
           kubectl scale deployment/todo-app \
             --replicas=1 -n "$TARGET_NAMESPACE"
-
           kubectl rollout status deployment/todo-app \
             -n "$TARGET_NAMESPACE" --timeout=20m
-
           kubectl patch cronjob wikipedia-reminder \
             -n "$TARGET_NAMESPACE" \
             --type=merge \
@@ -176,12 +161,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           echo "Namespace: $TARGET_NAMESPACE"
-
-          kubectl get deployments,statefulsets,cronjobs \
-            -n "$TARGET_NAMESPACE"
-
+          kubectl get deployments,statefulsets,cronjobs -n "$TARGET_NAMESPACE"
           kubectl get pods -n "$TARGET_NAMESPACE"
           kubectl get pvc -n "$TARGET_NAMESPACE"
           kubectl get gateway -n "$TARGET_NAMESPACE"

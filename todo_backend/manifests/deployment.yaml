@@ -30,6 +30,8 @@ spec:
                 secretKeyRef:
                   name: todo-db-secret
                   key: POSTGRES_PASSWORD
+            - name: NATS_URL
+              value: nats://todo-nats:4222
           resources:
             requests:
               cpu: "250m"

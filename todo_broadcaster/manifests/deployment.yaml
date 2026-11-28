@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-broadcaster
+  namespace: project
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-broadcaster
+  template:
+    metadata:
+      labels:
+        app: todo-broadcaster
+    spec:
+      containers:
+        - name: todo-broadcaster
+          image: todo-broadcaster:4.6
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NATS_URL
+              value: nats://todo-nats:4222
+            - name: WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: broadcaster-webhook
+                  key: WEBHOOK_URL
+                  optional: true
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"

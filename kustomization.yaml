@@ -1,44 +1,38 @@
-
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 namespace: project
-
 resources:
-  
   - gke_project/todo-image-pvc.yaml
   - gke_project/gateway.yaml
   - gke_project/httproute.yaml
   - gke_project/app-healthcheck.yaml
   - gke_project/backend-healthcheck.yaml
-
   - the_project/manifests/configmap.yaml
   - the_project/manifests/deployment.yaml
   - the_project/manifests/service.yaml
-
   - todo_backend/manifests/deployment.yaml
   - todo_backend/manifests/service.yaml
-
   - todo_postgres/manifests/statefulset.yaml
   - todo_postgres/manifests/service.yaml
-
   - todo_cronjob/manifests/cronjob.yaml
   - gke_project/backup-serviceaccount.yaml
   - gke_project/todo-backup-cronjob.yaml
-
+  - gke_project/nats-deployment.yaml
+  - gke_project/nats-service.yaml
+  - todo_broadcaster/manifests/deployment.yaml
 images:
   - name: todo-app
     newName: europe-north1-docker.pkg.dev/gen-lang-client-0541268770/dwk-images/todo-app
     newTag: "3.5"
-
   - name: todo-backend
     newName: europe-north1-docker.pkg.dev/gen-lang-client-0541268770/dwk-images/todo-backend
     newTag: "3.5"
-
   - name: todo-cronjob
     newName: europe-north1-docker.pkg.dev/gen-lang-client-0541268770/dwk-images/todo-cronjob
     newTag: "3.5"
-
+  - name: todo-broadcaster
+    newName: europe-north1-docker.pkg.dev/gen-lang-client-0541268770/dwk-images/todo-broadcaster
+    newTag: "4.6"
 patches:
   - target:
       kind: StatefulSet

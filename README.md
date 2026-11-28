@@ -3,7 +3,6 @@
 Exercises for the University of Helsinki's DevOps with Kubernetes course.
 
 ## Exercises
-
 ### Chapter 2
 - [1.1 — Log output](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.1/log_output)
 - [1.2 — The project](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.2/the_project)
@@ -18,7 +17,6 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 - [1.11 — Persisting data](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.11)
 - [1.12 — The project, step 6](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.12)
 - [1.13 — The project, step 7](https://github.com/Nightshade23x/devops-with-kubernetes/tree/1.13/the_project)
-
 ### Part 2
 - [2.1 — Connecting pods](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.1)
 - [2.2 — The project, step 8](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.2)
@@ -30,7 +28,6 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 - [2.8 — The project, step 11](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.8)
 - [2.9 — The project, step 12](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.9)
 - [2.10 — The project, step 13](https://github.com/Nightshade23x/devops-with-kubernetes/tree/2.10)
-
 ### Part 3
 - [3.1 — Pingpong GKE](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.1)
 - [3.2 — Back to Ingress](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.2)
@@ -44,10 +41,10 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 - [3.10 — The project, step 18](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.10)
 - [3.11 — The project, step 19](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.11)
 - [3.12 — The project, step 20](https://github.com/Nightshade23x/devops-with-kubernetes/tree/3.12)
-
 ### Part 4
 - [4.1 — Readiness probe](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.1)
 - [4.2 — The project, step 21](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.2)
 - [4.3 — Prometheus](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.3)
 - [4.4 — Your canary](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.4)
 - [4.5 — The project, step 22](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.5)
+- [4.6 — The project, step 23](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.6)

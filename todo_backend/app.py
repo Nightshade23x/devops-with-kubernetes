@@ -1,14 +1,18 @@
+import asyncio
 import json
 import os
 import re
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+import nats
 import psycopg
 
 HOST = os.environ["HOST"]
 PORT = int(os.environ["PORT"])
 TODOS_PATH = os.environ["TODOS_PATH"]
+NATS_URL = os.environ.get("NATS_URL", "nats://todo-nats:4222")
+NATS_SUBJECT = "todos.events"
 _initialized = False
 _init_lock = threading.Lock()
 
@@ -56,6 +60,29 @@ def ensure_database():
                         )
         _initialized = True
         print("Database initialized or existing todos upgraded", flush=True)
+
+
+async def _publish_event(event):
+    nc = await nats.connect(
+        servers=[NATS_URL], connect_timeout=1,
+        allow_reconnect=False,
+    )
+    try:
+        payload = json.dumps(event, ensure_ascii=False).encode("utf-8")
+        await nc.publish(NATS_SUBJECT, payload)
+        await nc.flush(timeout=2)
+    finally:
+        await nc.close()
+
+
+def publish_event(event):
+    """Best-effort NATS delivery AFTER DB commit; no retries or duplicates."""
+    try:
+        asyncio.run(_publish_event(event))
+        print(f"NATS_PUBLISHED event={event['event']} id={event['id']}", flush=True)
+    except Exception as error:
+        # The exercise permits missing notifications when dependencies are down.
+        print(f"NATS_UNAVAILABLE event={event['event']} id={event['id']}: {error}", flush=True)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -107,12 +134,10 @@ class Handler(BaseHTTPRequestHandler):
             print("TODO_REJECTED reason=invalid_json", flush=True)
             self.send_json(400, {"error": "Invalid JSON"})
             return
-
         if not isinstance(data, dict) or not isinstance(data.get("todo"), str):
             print("TODO_REJECTED reason=invalid_todo", flush=True)
             self.send_json(400, {"error": "Invalid todo"})
             return
-
         todo = data["todo"].strip()
         print(
             f"TODO_RECEIVED length={len(todo)} "
@@ -123,7 +148,6 @@ class Handler(BaseHTTPRequestHandler):
             print(f"TODO_REJECTED reason=invalid_length length={len(todo)}", flush=True)
             self.send_json(400, {"error": "Todo must have 1-140 characters"})
             return
-
         try:
             ensure_database()
             with connect() as connection:
@@ -137,13 +161,14 @@ class Handler(BaseHTTPRequestHandler):
                 f"TODO_SAVED id={todo_id} content={json.dumps(todo, ensure_ascii=False)}",
                 flush=True,
             )
+            # Publish only after the database transaction has committed.
+            publish_event({"event": "created", "id": todo_id, "content": todo})
             self.send_json(201, {"id": todo_id, "todo": todo, "done": False})
         except (psycopg.Error, OSError) as error:
             print(f"TODO_FAILED database_error={error}", flush=True)
             self.send_json(503, {"error": "Database unavailable"})
 
     def do_PUT(self):
-        # The exercise uses PUT /todos/<id> to mark an existing todo as done.
         match = re.fullmatch(re.escape(TODOS_PATH) + r"/([1-9][0-9]*)", self.path)
         if match is None:
             self.send_error(404)
@@ -153,18 +178,30 @@ class Handler(BaseHTTPRequestHandler):
             ensure_database()
             with connect() as connection:
                 with connection.cursor() as cursor:
+                    # Only the transition false -> true emits an event.
+                    # This avoids duplicates if the same PUT is repeated.
                     cursor.execute(
                         """
-                        UPDATE todos SET done = TRUE WHERE id = %s
+                        UPDATE todos SET done = TRUE
+                        WHERE id = %s AND done = FALSE
                         RETURNING id, content, done
                         """,
                         (todo_id,),
                     )
                     row = cursor.fetchone()
+                    changed = row is not None
+                    if not changed:
+                        cursor.execute(
+                            "SELECT id, content, done FROM todos WHERE id = %s",
+                            (todo_id,),
+                        )
+                        row = cursor.fetchone()
             if row is None:
                 self.send_json(404, {"error": "Todo not found"})
                 return
-            print(f"TODO_DONE id={todo_id}", flush=True)
+            if changed:
+                print(f"TODO_DONE id={todo_id}", flush=True)
+                publish_event({"event": "completed", "id": todo_id, "content": row[1]})
             self.send_json(
                 200, {"id": row[0], "content": row[1], "done": row[2]}
             )
