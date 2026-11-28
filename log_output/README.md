@@ -1,24 +1,32 @@
-
 # Log output
 
 Generates a timestamp and UUID every 5 seconds.
 
-Uses a ConfigMap for a file and environment variable. Gets the Ping-pong counter through HTTP.
+Uses a ConfigMap and retrieves the Ping-pong counter through HTTP.
 
-## Run
+## GitOps
+
+Install Argo CD:
 
 ```bash
-docker build -t log-output:2.5 .
-k3d image import log-output:2.5 -c dwk
-kubectl apply -f manifests/
+kubectl create namespace argocd
+kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
-Open http://localhost:8081/
+Register the application from the repository root:
 
-## GKE
+```bash
+kubectl apply -f log_output/argocd-application.yaml
+```
 
-Log output is deployed to GKE and exposed at `/` through an Ingress.
+GitHub Actions builds and publishes a new Docker image when application code changes and commits the updated image tag.
 
-## Gateway API
+Argo CD automatically synchronizes changes from GitHub to GKE.
 
-Log output is exposed at `/` using GKE Gateway API.
+## Verification
+
+```bash
+kubectl get applications -n argocd
+kubectl get pods -n exercises
+kubectl logs deployment/log-output -n exercises -c log-writer
+```

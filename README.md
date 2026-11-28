@@ -48,3 +48,4 @@ Exercises for the University of Helsinki's DevOps with Kubernetes course.
 - [4.4 — Your canary](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.4)
 - [4.5 — The project, step 22](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.5)
 - [4.6 — The project, step 23](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.6)
+- [4.7 — Baby steps to GitOps](https://github.com/Nightshade23x/devops-with-kubernetes/tree/4.7)
