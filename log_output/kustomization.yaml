@@ -4,10 +4,11 @@ kind: Kustomization
 namespace: exercises
 
 resources:
-  - manifests/configmap.yaml
-  - gke-deployment.yaml
-  - gke-service.yaml
+- manifests/configmap.yaml
+- gke-deployment.yaml
+- gke-service.yaml
 
 images:
-  - name: europe-north1-docker.pkg.dev/gen-lang-client-0541268770/dwk-images/log-output
-    newTag: "3.2"
+- name: europe-north1-docker.pkg.dev/gen-lang-client-0541268770/dwk-images/log-output
+  newName: europe-north1-docker.pkg.dev/gen-lang-client-0541268770/dwk-images/log-output
+  newTag: 050efcae28c488f79d97835ecc5a4d1a9c865c4d
