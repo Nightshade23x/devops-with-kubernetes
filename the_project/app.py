@@ -63,7 +63,13 @@ img { width: 80%; max-width: 500px; border-radius: 8px; }
 input { flex: 1; padding: 12px; }
 button { padding: 12px 20px; cursor: pointer; }
 li { text-align: left; padding: 12px; margin: 8px 0; background: #f5f5f5;
-     border-left: 4px solid green; list-style: none; }
+     border-left: 4px solid green; list-style: none;
+     display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+li.done { border-left-color: #999; background: #ededed; }
+.todo-text { overflow-wrap: anywhere; flex: 1; }
+li.done .todo-text { text-decoration: line-through; color: #777; }
+.mark-done { background: #1674d2; color: white; border: 0; border-radius: 4px; white-space: nowrap; }
+.done-label { color: #278136; font-weight: bold; }
 ul { padding: 0; }
 #break-button { background: #d43636; color: white; border: 0; border-radius: 4px; margin-top: 18px; }
 #error { color: #a11b1b; }
@@ -91,7 +97,39 @@ async function loadTodos() {
   list.replaceChildren();
   todos.forEach(todo => {
     const item = document.createElement("li");
-    item.textContent = todo;
+    if (todo.done) item.classList.add("done");
+
+    const text = document.createElement("span");
+    text.className = "todo-text";
+    text.textContent = todo.content;
+    item.appendChild(text);
+
+    if (todo.done) {
+      const doneLabel = document.createElement("span");
+      doneLabel.className = "done-label";
+      doneLabel.textContent = "Done";
+      item.appendChild(doneLabel);
+    } else {
+      const button = document.createElement("button");
+      button.className = "mark-done";
+      button.type = "button";
+      button.textContent = "Mark done";
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+        document.getElementById("error").textContent = "";
+        try {
+          const response = await fetch("__TODOS_PATH__/" + todo.id, {
+            method: "PUT"
+          });
+          if (!response.ok) throw new Error("Could not mark todo as done");
+          await loadTodos();
+        } catch (error) {
+          document.getElementById("error").textContent = error.message;
+          button.disabled = false;
+        }
+      });
+      item.appendChild(button);
+    }
     list.appendChild(item);
   });
 }
